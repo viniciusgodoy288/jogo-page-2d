@@ -1,0 +1,189 @@
+<html><head><base href="https://example.com/"><title>Clicker Game - Ganhe Pontos e Melhore!</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #1e5799, #2989d8, #207cca, #7db9e8);
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.game-container {
+    display: flex;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+}
+
+.game-area {
+    text-align: center;
+    margin-right: 20px;
+}
+
+.upgrade-area {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    padding: 15px;
+    width: 250px;
+}
+
+#clickButton {
+    background: linear-gradient(45deg, #ff6b6b, #feca57);
+    border: none;
+    color: white;
+    padding: 15px 30px;
+    font-size: 18px;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.1s;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+#clickButton:hover {
+    transform: scale(1.05);
+    box-shadow: 0 7px 20px rgba(0, 0, 0, 0.3);
+}
+
+#clickButton:active {
+    transform: scale(0.95);
+}
+
+.upgrade-button {
+    background: linear-gradient(45deg, #00b894, #00cec9);
+    border: none;
+    color: white;
+    padding: 10px;
+    margin: 5px 0;
+    width: 100%;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.upgrade-button:hover {
+    background: linear-gradient(45deg, #00a885, #00b8b8);
+}
+
+.upgrade-button:disabled {
+    background: #7f8c8d;
+    cursor: not-allowed;
+}
+
+#points {
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.particle {
+    position: absolute;
+    pointer-events: none;
+    animation: particleAnimation 1s ease-out forwards;
+}
+
+@keyframes particleAnimation {
+    0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(var(--tx), var(--ty)) scale(0);
+        opacity: 0;
+    }
+}
+
+.upgrade-count {
+    font-size: 12px;
+    color: #ddd;
+}
+</style>
+</head>
+<body>
+<div class="game-container">
+    <div class="game-area">
+        <h1>Clicker Game</h1>
+        <p id="points">Pontos: 0</p>
+        <button id="clickButton">Clique aqui!</button>
+    </div>
+    <div class="upgrade-area">
+        <h2>Melhorias</h2>
+        <button class="upgrade-button" id="upgrade1">Aumento de Clique (+5 pontos/clique) - Custo: 50 pontos <span class="upgrade-count">(0/5)</span></button>
+        <button class="upgrade-button" id="upgrade2">Clique Automático (1 clique/s) - Custo: 200 pontos <span class="upgrade-count">(0/5)</span></button>
+        <button class="upgrade-button" id="upgrade3">Multiplicador de Pontos (x2) - Custo: 1000 pontos <span class="upgrade-count">(0/5)</span></button>
+        <button class="upgrade-button" id="upgrade4">Super Clique (chance de 10% de ganhar 50x pontos) - Custo: 5000 pontos <span class="upgrade-count">(0/5)</span></button>
+        <button class="upgrade-button" id="upgrade5">Força Suprema (x1000 pontos/clique) - Custo: 1000000000 pontos <span class="upgrade-count">(0/5)</span></button>
+    </div>
+</div>
+
+<script>
+let points = 0;
+let clickValue = 1;
+let autoClickValue = 0;
+let pointMultiplier = 1;
+let superClickChance = 0;
+let supremeForce = 1;
+
+const upgrades = [
+    { cost: 50, count: 0, effect: () => { clickValue += 5; } },
+    { cost: 200, count: 0, effect: () => { autoClickValue += 1; } },
+    { cost: 1000, count: 0, effect: () => { pointMultiplier *= 2; } },
+    { cost: 5000, count: 0, effect: () => { superClickChance += 0.1; } },
+    { cost: 1000000000, count: 0, effect: () => { supremeForce *= 1000; } }
+];
+
+function updatePoints() {
+    document.getElementById('points').textContent = `Pontos: ${Math.floor(points)}`;
+    upgrades.forEach((upgrade, index) => {
+        const button = document.getElementById(`upgrade${index + 1}`);
+        button.disabled = points < upgrade.cost || upgrade.count >= 5;
+        button.innerHTML = `${button.textContent.split(' - ')[0]} - Custo: ${upgrade.cost} pontos <span class="upgrade-count">(${upgrade.count}/5)</span>`;
+    });
+}
+
+function createParticle(x, y, value) {
+    const particle = document.createElement('div');
+    particle.className = 'particle';
+    particle.textContent = `+${value}`;
+    particle.style.left = `${x}px`;
+    particle.style.top = `${y}px`;
+    particle.style.setProperty('--tx', `${Math.random() * 100 - 50}px`);
+    particle.style.setProperty('--ty', `${-50 - Math.random() * 50}px`);
+    document.body.appendChild(particle);
+    setTimeout(() => particle.remove(), 1000);
+}
+
+document.getElementById('clickButton').addEventListener('click', (e) => {
+    let clickPoints = clickValue * pointMultiplier * supremeForce;
+    if (Math.random() < superClickChance) {
+        clickPoints *= 50;
+        createParticle(e.clientX, e.clientY, 'SUPER!');
+    }
+    points += clickPoints;
+    createParticle(e.clientX, e.clientY, Math.floor(clickPoints));
+    updatePoints();
+});
+
+upgrades.forEach((upgrade, index) => {
+    document.getElementById(`upgrade${index + 1}`).addEventListener('click', () => {
+        if (points >= upgrade.cost && upgrade.count < 5) {
+            points -= upgrade.cost;
+            upgrade.count++;
+            upgrade.effect();
+            upgrade.cost = Math.floor(upgrade.cost * 1.5);
+            updatePoints();
+        }
+    });
+});
+
+setInterval(() => {
+    points += autoClickValue * pointMultiplier * supremeForce;
+    updatePoints();
+}, 1000);
+
+updatePoints();
+</script>
+</body>
+</html>
